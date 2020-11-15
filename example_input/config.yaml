@@ -1,0 +1,10 @@
+serverPort: ":4000"
+serverAddress: "/metrics"
+
+entries:
+  - name: "example_prometheus_entry"
+    description: "This is example prometheus entry"
+    timestamp: 5
+    filename: "./example_input/thermal"
+    lineNumber: 1
+    elemNumber: 2
