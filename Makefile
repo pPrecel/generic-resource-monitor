@@ -1,5 +1,5 @@
 DOCKER_IMAGE_NAME ?= "pprecel/generic-resource-monitor"
-DOCKER_TAG ?= $(git describe --always --tags)
+DOCKER_TAG ?= $(shell git describe --always --tags)
 
 .PHONY:
 

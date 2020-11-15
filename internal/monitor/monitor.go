@@ -11,7 +11,7 @@ import (
 
 const (
 	errorFormat = "while reading file %s: %s"
-	infoFormat  = "value from file: %s is: %s"
+	infoFormat  = "value from file: %s is: %v"
 )
 
 var (
@@ -23,7 +23,7 @@ var (
 
 func FireUpEntries(entries []config.MonitorEntry) error {
 	for _, entry := range entries {
-		go func() {
+		go func(entry config.MonitorEntry) {
 			opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
 				Name: entry.Name,
 				Help: entry.Description,
@@ -38,7 +38,7 @@ func FireUpEntries(entries []config.MonitorEntry) error {
 				log.Infof(infoFormat, entry.Filename, val)
 				opsProcessed.Set(val)
 			}
-		}()
+		}(entry)
 	}
 	return nil
 }

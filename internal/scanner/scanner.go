@@ -26,7 +26,7 @@ func ExtractVal(filename string, line, elem int) (float64, error) {
 			continue
 		}
 
-		lineText := strings.Split(scanner.Text(), " ")
+		lineText := strings.Fields(scanner.Text())
 		if len(lineText) < elem {
 			return 0.0, fmt.Errorf(errorFormat, line, elem)
 		}

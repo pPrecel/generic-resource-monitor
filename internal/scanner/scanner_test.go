@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-var exampleFileData = []byte(`adssada 12 12 42 54
-fddsdfs 52 45 65 1
-sdasd 2 1 4 69
+var exampleFileData = []byte(`adssada                            12 12 42 54
+fddsdfs          52          45 65 1
+sdasd 2           1   4 69
 666
 3333 2 21.66 1`)
 
