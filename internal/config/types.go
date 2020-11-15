@@ -15,7 +15,7 @@ type MonitorEntry struct {
 type MetricInfo struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
-	Timestamp   int64  `yaml:"timestamp"`
+	Timestamp   float64  `yaml:"timestamp"`
 }
 
 type FileInfo struct {

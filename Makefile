@@ -12,6 +12,7 @@ format:
 verify:
 	GO111MODULE=on go mod verify
 	go vet ./...
+	go test ./...
 
 .PHONY: build-and-push
 build-and-push:
