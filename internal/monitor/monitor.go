@@ -1,44 +1,69 @@
 package monitor
 
 import (
-	"github.com/pPrecel/raspberrypi-file-monitor/internal/config"
 	"github.com/pPrecel/raspberrypi-file-monitor/internal/scanner"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	log "github.com/sirupsen/logrus"
+	"github.com/pkg/errors"
 	"time"
 )
 
-const (
-	errorFormat = "while reading file %s: %s"
-	infoFormat  = "value from file: %s is: %v"
-)
+type Monitor struct {
+	Metrics      Files
+	readFile     func(string) ([]string, error)
+	extractFloat func([]string, int, int) (float64, error)
+}
 
-var (
-	opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
-		Name: "myapp_processed_ops_total",
-		Help: "The total number of processed events",
-	})
-)
-
-func FireUpEntries(entries []config.MonitorEntry) error {
-	for _, entry := range entries {
-		go func(entry config.MonitorEntry) {
-			opsProcessed = promauto.NewGauge(prometheus.GaugeOpts{
-				Name: entry.Name,
-				Help: entry.Description,
-			})
-			for {
-				time.Sleep(time.Duration(entry.Timestamp) * time.Second)
-
-				val, err := scanner.ExtractVal(entry.Filename, entry.LineNumber, entry.ElemNumber)
-				if err != nil {
-					log.Errorf(errorFormat, entry.Filename, err)
-				}
-				log.Infof(infoFormat, entry.Filename, val)
-				opsProcessed.Set(val)
-			}
-		}(entry)
+func New(files Files) *Monitor {
+	return &Monitor{
+		Metrics:      files,
+		readFile:     scanner.ReadLines,
+		extractFloat: scanner.ExtractFloat,
 	}
-	return nil
+}
+
+type Channel struct {
+	Error error
+	Entry *Metric
+	Float float64
+}
+
+func (m *Monitor) FireEntries() chan Channel {
+	channel := make(chan Channel)
+	for _, file := range m.Metrics {
+		go func(channel chan Channel, file File) {
+			for {
+				m.entryFunc(channel, file)
+				time.Sleep(file.delay)
+			}
+		}(channel, file)
+	}
+	return channel
+}
+
+const (
+	readingFileErrorFormat     = "while reading file %s"
+	extractingValueErrorFormat = "while extracting value from file %s"
+)
+
+func (m *Monitor) entryFunc(channel chan Channel, entry File) {
+	lines, err := m.readFile(entry.filename)
+	if err != nil {
+		channel <- Channel{
+			Error: errors.Wrapf(err, readingFileErrorFormat, entry.filename),
+		}
+		return
+	}
+
+	for _, metric := range entry.Metrics {
+		float, err := m.extractFloat(lines, metric.line, metric.column)
+		if err != nil {
+			channel <- Channel{
+				Error: errors.Wrapf(err, extractingValueErrorFormat, entry.filename),
+			}
+			return
+		}
+		channel <- Channel{
+			Entry: &metric,
+			Float: float,
+		}
+	}
 }

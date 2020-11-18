@@ -9,7 +9,7 @@ import (
 
 var exampleConfigFilename = "./example_input/config.yaml"
 
-func TestReadConfig(t *testing.T) {
+func TestReadAndDefault(t *testing.T) {
 	tmpFile, err := ioutil.TempFile("/tmp", "go-test-")
 	failOnError(err)
 	defer tmpFile.Close()
@@ -56,7 +56,7 @@ func TestReadConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReadConfig(tt.args.filename)
+			got, err := ReadAndDefault(tt.args.filename)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ReadConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -80,17 +80,68 @@ func fixExampleConfig() Config {
 		ServerAddress: "/metrics",
 		Entries: []MonitorEntry{
 			{
-				MetricInfo: MetricInfo{
-					Name:        "example_prometheus_entry",
-					Description: "This is example prometheus entry",
-					Timestamp:   5,
+				Metrics: []MetricInfo{
+					{
+						Name:        "example_prometheus_entry",
+						Description: "This is example prometheus entry",
+						Type:        "Counter",
+						Line:        1,
+						Column:      2,
+					},
 				},
 				FileInfo: FileInfo{
-					Filename:   "./example_input/thermal",
-					LineNumber: 1,
-					ElemNumber: 2,
+					Filename:  "./example_input/thermal",
+					TimeDelay: "5s",
 				},
 			},
 		},
+	}
+}
+
+func Test_defaultConfig(t *testing.T) {
+	type args struct {
+		config Config
+	}
+	tests := []struct {
+		name string
+		args args
+		want Config
+	}{
+		{
+			name: "should default every value",
+			args: args{
+				config: Config{
+					ServerPort:    "",
+					ServerAddress: "",
+					Entries: []MonitorEntry{
+						{
+							FileInfo: FileInfo{
+								TimeDelay: "",
+							},
+							Metrics: nil,
+						},
+					},
+				},
+			},
+			want: Config{
+				ServerPort:    ":4040",
+				ServerAddress: "/metrics",
+				Entries: []MonitorEntry{
+					{
+						FileInfo: FileInfo{
+							TimeDelay: "5s",
+						},
+						Metrics: nil,
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := defaultConfig(tt.args.config); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("defaultConfig() = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

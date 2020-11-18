@@ -8,18 +8,19 @@ type Config struct {
 }
 
 type MonitorEntry struct {
-	MetricInfo `yaml:",inline"`
-	FileInfo   `yaml:",inline"`
+	FileInfo `yaml:",inline"`
+	Metrics  []MetricInfo
 }
 
 type MetricInfo struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description"`
-	Timestamp   float64  `yaml:"timestamp"`
+	Type        string `yaml:"type"`
+	Line        int    `yaml:"line"`
+	Column      int    `yaml:"column"`
 }
 
 type FileInfo struct {
-	Filename   string `yaml:"filename"`
-	LineNumber int    `yaml:"lineNumber"`
-	ElemNumber int    `yaml:"elemNumber"`
+	Filename  string `yaml:"filename"`
+	TimeDelay string `yaml:"delay"`
 }

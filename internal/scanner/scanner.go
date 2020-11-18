@@ -13,31 +13,36 @@ const (
 	parseErrorFormat = "can't parse value: %s as float64"
 )
 
-func ExtractVal(filename string, line, elem int) (float64, error) {
+func ExtractFloat(lines []string, line, column int) (float64, error) {
+	if len(lines)-1 < line {
+		return 0.0, fmt.Errorf(errorFormat, line, column)
+	}
+
+	lineText := strings.Fields(lines[line])
+	if len(lineText)-1 < column {
+		return 0.0, fmt.Errorf(errorFormat, line, column)
+	}
+
+	float, err := strconv.ParseFloat(lineText[column], 64)
+	if err != nil {
+		return 0.0, fmt.Errorf(parseErrorFormat, lineText[column])
+	}
+
+	return float, nil
+}
+
+func ReadLines(filename string) ([]string, error) {
 	reader, err := os.Open(filename)
 	if err != nil {
-		return 0.0, err
+		return nil, err
 	}
 	defer reader.Close()
 	scanner := bufio.NewScanner(reader)
 
-	for lineNumber := 0; scanner.Scan(); lineNumber++ {
-		if lineNumber != line {
-			continue
-		}
-
-		lineText := strings.Fields(scanner.Text())
-		if len(lineText) < elem {
-			return 0.0, fmt.Errorf(errorFormat, line, elem)
-		}
-
-		float, err := strconv.ParseFloat(lineText[elem], 64)
-		if err != nil {
-			return 0.0, fmt.Errorf(parseErrorFormat, lineText[elem])
-		}
-
-		return float, nil
+	var lines []string
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
 	}
 
-	return 0.0, fmt.Errorf(errorFormat, line, elem)
+	return lines, nil
 }

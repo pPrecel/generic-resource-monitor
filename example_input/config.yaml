@@ -2,9 +2,29 @@ serverPort: ":4000"
 serverAddress: "/metrics"
 
 entries:
-  - name: "example_prometheus_entry"
-    description: "This is example prometheus entry"
-    timestamp: 5
-    filename: "./example_input/thermal"
-    lineNumber: 1
-    elemNumber: 2
+  - filename: "./example_input/thermal"
+    delay: 1s
+    metrics:
+      - name: "example_prometheus_entry"
+        description: "This is example prometheus entry"
+        type: "Gauge"
+        line: 1
+        column: 2
+  - filename: "./example_input/cpu"
+    delay: 500ms
+    metrics:
+      - name: "cpu_1"
+        type: "Counter"
+        line: 0
+        column: 10
+      - name: "cpu_2"
+        line: 1
+        column: 10
+      - name: "thisvaluedontexist"
+        line: 600
+  - filename: "thisfiledontexist"
+    delay: 1s
+    metrics:
+      - name: "example"
+        line: 1
+        column: 2
